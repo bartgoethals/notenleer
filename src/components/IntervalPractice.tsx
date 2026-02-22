@@ -53,7 +53,8 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
         }
     }, [cheatMode, isHistoryView]);
 
-    const generateRandomInterval = useCallback(() => {
+    const generateRandomInterval = useCallback((isRefresh: boolean | React.MouseEvent = false) => {
+        const refresh = isRefresh === true;
         const interval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
         const baseIndex = Math.floor(Math.random() * 12);
         const baseOctave = 4;
@@ -73,11 +74,16 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
             targetNote: { name: noteName, octave, freq: targetFreq }
         };
 
-        setHistory(prev => [...prev.slice(0, historyIndex + 1), newItem]);
-        setHistoryIndex(prev => prev + 1);
+        setHistory(prev => {
+            if (refresh && prev.length > 0 && feedback.type === null) {
+                return [...prev.slice(0, prev.length - 1), newItem];
+            }
+            return [...prev.slice(0, historyIndex + 1), newItem];
+        });
+        setHistoryIndex(prev => refresh && history.length > 0 && feedback.type === null ? history.length - 1 : prev + 1);
         setFeedback({ type: null, message: '' });
         setHasCheatedThisExercise(cheatMode);
-    }, [historyIndex, cheatMode]);
+    }, [historyIndex, cheatMode, history.length, feedback.type]);
 
     useEffect(() => {
         generateRandomInterval();
@@ -163,7 +169,7 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
                 </div>
 
                 <div className="practice-header-right">
-                    <button className="btn-icon-toggle" onClick={generateRandomInterval} title="Volgende">
+                    <button className="btn-icon-toggle" onClick={() => generateRandomInterval(true)} title="Nieuwe opgave">
                         <RotateCcw size={22} />
                     </button>
                     <div className="history-nav">
@@ -175,9 +181,6 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
                         >
                             <ChevronLeft size={22} />
                         </button>
-                        <span className="history-count">
-                            {history.length > 0 ? `${historyIndex + 1}/${history.length}` : '0/0'}
-                        </span>
                         <button
                             className="btn-icon-toggle"
                             onClick={handleNext}

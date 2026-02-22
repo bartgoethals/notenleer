@@ -90,7 +90,8 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     playNote(baseSequenceState[nextIndex].key);
   }, [playbackIndex, baseSequenceState, playNote]);
 
-  const generateSequence = useCallback(() => {
+  const generateSequence = useCallback((isRefresh: boolean | React.MouseEvent = false) => {
+    const refresh = isRefresh === true;
     const newSequence: NoteData[] = [];
     const randomClef = activeClefs[Math.floor(Math.random() * activeClefs.length)];
 
@@ -112,8 +113,13 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
 
     const newHistoryItem: NoteHistoryItem = { clef: randomClef, sequence: newSequence };
 
-    setHistory(prev => [...prev.slice(0, historyIndex + 1), newHistoryItem]);
-    setHistoryIndex(prev => prev + 1);
+    setHistory(prev => {
+      if (refresh && prev.length > 0 && currentIndex === 0) {
+        return [...prev.slice(0, prev.length - 1), newHistoryItem];
+      }
+      return [...prev.slice(0, historyIndex + 1), newHistoryItem];
+    });
+    setHistoryIndex(prev => refresh && history.length > 0 && currentIndex === 0 ? history.length - 1 : prev + 1);
     setCurrentIndex(0);
     setFeedback({ type: null, message: '' });
     setHasCheatedThisExercise(cheatMode);
@@ -121,7 +127,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     // Play the first note
     setTimeout(() => playNote(newSequence[0].key), 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeClefs, playNote, historyIndex]);
+  }, [activeClefs, playNote, historyIndex, cheatMode, history.length]);
 
   useEffect(() => {
     if (history.length === 0) {
@@ -253,7 +259,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
           </div>
         </div>
         <div className="practice-header-right">
-          <button className="btn-icon-toggle" onClick={generateSequence} title="Volgende">
+          <button className="btn-icon-toggle" onClick={() => generateSequence(true)} title="Nieuwe opgave">
             <RotateCcw size={22} />
           </button>
           <div className="history-nav">
@@ -265,9 +271,6 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
             >
               <ChevronLeft size={22} />
             </button>
-            <span className="history-count">
-              {history.length > 0 ? `${historyIndex + 1}/${history.length}` : '0/0'}
-            </span>
             <button
               className="btn-icon-toggle"
               onClick={handleNext}
@@ -330,7 +333,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
               key={note}
               className={`btn-note ${showHighlight ? 'cheat-active' : ''} ${isWrongNote ? 'error-active' : ''}`}
               onClick={() => handleGuess(note)}
-              disabled={feedback.type === 'error' || isHistoryView}
+              disabled={isHistoryView}
             >
               {getNoteDisplay(note, namingSystem)}
             </button>

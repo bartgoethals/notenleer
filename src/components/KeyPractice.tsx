@@ -110,7 +110,8 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
         }
     }, []); // Stable audio playback
 
-    const generateRandomKey = useCallback(() => {
+    const generateRandomKey = useCallback((isRefresh: boolean | React.MouseEvent = false) => {
+        const refresh = isRefresh === true;
         const availableKeys = [
             ...(activeModes.includes('major') ? MAJOR_KEYS : []),
             ...(activeModes.includes('minor') ? MINOR_KEYS : [])
@@ -134,8 +135,13 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
         const newItem: KeyHistoryItem = { key: nextKey, variant: targetVariant, activeModes, includeVariants };
         setCurrentExerciseModes(activeModes);
         setCurrentExerciseIncludeVariants(includeVariants);
-        setHistory(prev => [...prev.slice(0, historyIndex + 1), newItem]);
-        setHistoryIndex(prev => prev + 1);
+        setHistory(prev => {
+            if (refresh && prev.length > 0 && feedback.type === null) {
+                return [...prev.slice(0, prev.length - 1), newItem];
+            }
+            return [...prev.slice(0, historyIndex + 1), newItem];
+        });
+        setHistoryIndex(prev => refresh && history.length > 0 && feedback.type === null ? history.length - 1 : prev + 1);
 
         setFeedback({ type: null, message: '' });
         setHasCheatedThisExercise(cheatMode);
@@ -148,7 +154,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
             playKeySounds(nextKey, targetVariant);
             audioTimerRef.current = null;
         }, 500);
-    }, [activeModes, playKeySounds, includeVariants, historyIndex, cheatMode]);
+    }, [activeModes, playKeySounds, includeVariants, historyIndex, cheatMode, history.length, feedback.type]);
 
     // Generate key on mount
     useEffect(() => {
@@ -320,7 +326,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                 </div>
 
                 <div className="practice-header-right">
-                    <button className="btn-icon-toggle" onClick={generateRandomKey} title="Volgende">
+                    <button className="btn-icon-toggle" onClick={() => generateRandomKey(true)} title="Nieuwe opgave">
                         <RotateCcw size={22} />
                     </button>
                     <div className="history-nav">
@@ -332,9 +338,6 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                         >
                             <ChevronLeft size={22} />
                         </button>
-                        <span className="history-count">
-                            {history.length > 0 ? `${historyIndex + 1}/${history.length}` : '0/0'}
-                        </span>
                         <button
                             className="btn-icon-toggle"
                             onClick={handleNext}
