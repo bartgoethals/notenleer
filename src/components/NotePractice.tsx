@@ -127,7 +127,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     // Play the first note
     setTimeout(() => playNote(newSequence[0].key), 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeClefs, playNote, historyIndex, cheatMode, history.length]);
+  }, [activeClefs, playNote, historyIndex, cheatMode, history.length, currentIndex]);
 
   useEffect(() => {
     if (history.length === 0) {
