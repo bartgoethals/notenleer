@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Music, Hash, Radio, BookOpen, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
+import { Music, Hash, Radio, Activity, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
 import './App.css';
 
 import NotePractice from './components/NotePractice';
 import KeyPractice from './components/KeyPractice';
 import IntervalPractice from './components/IntervalPractice';
+import RhythmPractice from './components/RhythmPractice';
 import { NamingSystem } from './utils/musicUtils';
 
-type ExerciseType = 'notes' | 'keys' | 'intervals';
+type ExerciseType = 'notes' | 'keys' | 'intervals' | 'rhythm';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ExerciseType>('notes');
@@ -18,7 +19,8 @@ function App() {
   const [scores, setScores] = useState({
     notes: { correct: 0, total: 0 },
     keys: { correct: 0, total: 0 },
-    intervals: { correct: 0, total: 0 }
+    intervals: { correct: 0, total: 0 },
+    rhythm: { correct: 0, total: 0 }
   });
 
   const updateScore = (category: ExerciseType, isCorrect: boolean) => {
@@ -61,6 +63,13 @@ function App() {
             <Radio size={20} />
             <span>Intervallen</span>
           </button>
+          <button
+            className={`nav-item ${activeTab === 'rhythm' ? 'active' : ''}`}
+            onClick={() => setActiveTab('rhythm')}
+          >
+            <Activity size={20} />
+            <span>Ritme</span>
+          </button>
         </nav>
         <div className="header-actions">
           <div className="naming-toggle-local">
@@ -100,7 +109,8 @@ function App() {
         <section className="exercise-view glass-card">
           {activeTab === 'notes' && <NotePractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} cheatMode={cheatMode} globalScore={scores.notes} updateGlobalScore={(c) => updateScore('notes', c)} />}
           {activeTab === 'keys' && <KeyPractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} cheatMode={cheatMode} globalScore={scores.keys} updateGlobalScore={(c) => updateScore('keys', c)} />}
-          {activeTab === 'intervals' && <IntervalPractice volume={volume} cheatMode={cheatMode} globalScore={scores.intervals} updateGlobalScore={(c) => updateScore('intervals', c)} />}
+          {activeTab === 'intervals' && <IntervalPractice volume={volume} cheatMode={cheatMode} globalScore={scores.intervals} updateGlobalScore={(c: boolean) => updateScore('intervals', c)} />}
+          {activeTab === 'rhythm' && <RhythmPractice volume={volume} cheatMode={cheatMode} globalScore={scores.rhythm} updateGlobalScore={(c: boolean) => updateScore('rhythm', c)} />}
         </section>
 
         <aside className="score-sidebar glass-card">
@@ -116,6 +126,10 @@ function App() {
           <div className="score-item">
             <span className="score-label"><Radio size={16} /> Intervallen</span>
             <span className="score-value">{scores.intervals.correct} / {scores.intervals.total}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label"><Activity size={16} /> Ritme</span>
+            <span className="score-value">{scores.rhythm.correct} / {scores.rhythm.total}</span>
           </div>
           {cheatMode && (
             <div className="cheat-warning">

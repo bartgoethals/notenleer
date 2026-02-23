@@ -156,7 +156,7 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
 
     return (
         <div className="practice-area">
-            <p className="exercise-description">Leer intervallen herkennen door het verschil tussen twee opeenvolgende tonen te bepalen.</p>
+
             <div className="practice-header">
                 <div className="controls-group">
                     <button

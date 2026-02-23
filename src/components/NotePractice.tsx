@@ -238,7 +238,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
 
   return (
     <div className="practice-area">
-      <p className="exercise-description">Oefen het herkennen van noten op de notenbalk in reeksen van 8.</p>
+
       <div className="practice-header">
         <div className="controls-group">
           <div className="clef-toggle toggle-group">

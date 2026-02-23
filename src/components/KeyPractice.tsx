@@ -280,7 +280,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
 
     return (
         <div className="practice-area">
-            <p className="exercise-description">Herken de toonaard aan de hand van de voortekening en de toonladder.</p>
+
             <div className="practice-header">
                 <div className="controls-group">
                     <div className="clef-toggle toggle-group">
