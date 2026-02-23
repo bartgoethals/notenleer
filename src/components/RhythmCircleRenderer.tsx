@@ -68,11 +68,15 @@ const RhythmCircleRenderer: React.FC<RhythmCircleRendererProps> = ({ sequence, s
             {showSolution && sequenceWithStart.map((item, idx) => {
                 const { startTick } = item;
 
-                // Skip if it's a rest or if the playback hasn't reached it yet
-                if (item.isRest || currentTick <= startTick) return null;
+                // Skip if it's a rest
+                if (item.isRest) return null;
 
-                // The slice only fills up to the duration of the note OR the current progress, whichever is smaller
-                const filledDuration = Math.min(item.ticks, currentTick - startTick);
+                let filledDuration = item.ticks;
+                // Animate the fill only when actively playing
+                if (progress > 0 && progress < 1) {
+                    if (currentTick <= startTick) return null;
+                    filledDuration = Math.min(item.ticks, currentTick - startTick);
+                }
 
                 // If it's basically 0, don't render it yet to avoid math errors
                 if (filledDuration <= 0.01) return null;
@@ -104,19 +108,10 @@ const RhythmCircleRenderer: React.FC<RhythmCircleRendererProps> = ({ sequence, s
                 const x2 = cx + radius * Math.cos(rad);
                 const y2 = cy + radius * Math.sin(rad);
 
-                // Only draw the spoke if the progress hand has reached or passed this note's start
-                if (currentTick < item.startTick && progress > 0) return null;
-                // Exception: if progress is 0 (not playing), maybe we don't draw any? 
-                // Wait, if it's not playing (progress === 0), the user said "pas getekend worden wanneer de straal op die plaats passeert"
-                // Meaning before it's played, they shouldn't see the spokes maybe? Or they should only appear during playback.
-                // Let's only show them during playback (progress > 0) AND when currentTick >= startTick.
-                // Or maybe they meant it permanently stays there after passing? The progress resets to 0 when stopped or finished.
-                // Let's make it so if progress > 0, it draws progressively. If progress === 1 (or 0 but showing solution?), it shows all.
-                // If progress === 0 (idle state), we don't show the lines inside the pie chunks, ensuring it's a surprise.
-
-                // Let's do this: if progress === 0, no spokes (pie slices are also hidden because currentTick is 0).
-                // If progress > 0, draw spoke if currentTick >= startTick.
-                if (currentTick < item.startTick) return null;
+                // Animate the spoke visibility only when actively playing
+                if (progress > 0 && progress < 1) {
+                    if (currentTick < item.startTick) return null;
+                }
 
                 return (
                     <line

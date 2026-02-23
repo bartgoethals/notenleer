@@ -425,6 +425,8 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                     if (isHistoryView || feedback.type !== null) {
                         if (isCorrectChoice) choiceClass += " cheat-active";
                         else if (isUserChoice) choiceClass += " error-active";
+                    } else if (cheatMode && isCorrectChoice) {
+                        choiceClass += " cheat-active";
                     }
 
                     return (
