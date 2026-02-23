@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, KeySignature } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, KeySignature, Annotation, Modifier } from 'vexflow';
 import { KEY_SIGNATURE_NOTES } from '../utils/musicUtils';
 
 export interface NoteData {
@@ -7,6 +7,8 @@ export interface NoteData {
     status: 'idle' | 'correct' | 'incorrect';
     isCurrent?: boolean;
     guessedKey?: string;
+    isHidden?: boolean;
+    isTransitioning?: boolean;
 }
 
 interface ScoreRendererProps {
@@ -94,12 +96,19 @@ const ScoreRenderer: React.FC<ScoreRendererProps> = ({
                     color1 = '#22c55e'; // Green if correct or wrong guess (we show the expected one in green)
                 }
 
-                const style1 = n.isCurrent
+                let style1 = n.isCurrent
                     ? { fillStyle: '#ffffff', strokeStyle: '#ffffff' }
                     : { fillStyle: color1, strokeStyle: color1 };
 
+                if (n.isHidden) {
+                    style1 = { fillStyle: 'transparent', strokeStyle: 'transparent' };
+                }
+
                 sn1.setStyle(style1);
                 sn1.setLedgerLineStyle(style1);
+                if (n.isHidden && sn1.setStemStyle) {
+                    sn1.setStemStyle({ strokeStyle: 'transparent' });
+                }
 
                 const notePitch = n.key.split('/')[0];
                 const baseNote = notePitch[0].toUpperCase();
@@ -112,7 +121,12 @@ const ScoreRenderer: React.FC<ScoreRendererProps> = ({
                     sn1.addModifier(new Accidental('n'));
                 }
 
-                sn1.getModifiers().forEach(m => m.setStyle(style1));
+                sn1.getModifiers().forEach(m => {
+                    if (m.getAttribute("type") === "Accidental") {
+                        m.setStyle(style1);
+                    }
+                });
+
                 staveNotes1.push(sn1);
 
                 if (n.guessedKey) {

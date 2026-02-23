@@ -597,9 +597,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .btn-replay {
+  position: relative;
   background: rgba(139, 92, 246, 0.1);
   border: 1px solid rgba(139, 92, 246, 0.2);
   color: #8b5cf6;
@@ -616,4 +618,33 @@
 .btn-replay:hover {
   background: rgba(139, 92, 246, 0.2);
   transform: scale(1.1);
+}
+
+.btn-replay:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.play-progress-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.play-progress-circle circle {
+  fill: none;
+  stroke: #a855f7;
+  stroke-width: 4;
+  stroke-dasharray: 113;
+  /* 2 * pi * r (r=18) roughly 113 */
+  stroke-dashoffset: 113;
+}
+
+.btn-replay.is-transitioning .play-progress-circle circle {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.2s linear;
 }

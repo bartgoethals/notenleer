@@ -9,7 +9,8 @@ import {
     RhythmItem,
     generateRhythmForSignature,
     TEMPO_NAMES,
-    generateWrongRhythms
+    generateWrongRhythms,
+    getRandomTempo
 } from '../utils/rhythmUtils';
 
 interface RhythmHistoryItem {
@@ -63,8 +64,12 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
         const correctChoiceIndex = Math.floor(Math.random() * 4);
         choices.splice(correctChoiceIndex, 0, sequence);
 
-        // By default use the selectedTempo for this new exercise
-        const newItem: RhythmHistoryItem = { signature, tempo: selectedTempo, sequence, choices, correctChoiceIndex };
+        // Randomize tempo for new exercise
+        const newTempo = getRandomTempo();
+        setSelectedTempo(newTempo);
+        setCustomBpmInput(newTempo.bpm.toString());
+
+        const newItem: RhythmHistoryItem = { signature, tempo: newTempo, sequence, choices, correctChoiceIndex };
 
         setHistory(prev => {
             if (refresh && prev.length > 0 && feedback.type === null) {

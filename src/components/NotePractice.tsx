@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as Tone from 'tone';
-import { Volume2, VolumeX, RotateCcw, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Play, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import ScoreRenderer, { NoteData } from './ScoreRenderer';
 import { getNoteDisplay, NamingSystem } from '../utils/musicUtils';
 
@@ -23,6 +23,7 @@ interface NotePracticeProps {
 const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSystem, volume, cheatMode, globalScore, updateGlobalScore }) => {
   const [activeClefs, setActiveClefs] = useState<('treble' | 'bass')[]>(['treble']);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showNotation, setShowNotation] = useState(true);
 
   const [history, setHistory] = useState<NoteHistoryItem[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -35,12 +36,20 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
   const baseSequenceState = currentItem ? currentItem.sequence : [];
   const clefState = currentItem ? currentItem.clef : 'treble';
 
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+  const [transitionState, setTransitionState] = useState<{ active: boolean, dots: number }>({ active: false, dots: 0 });
+  const transitionIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const effectiveShowNotation = showNotation || !volume || cheatMode;
+
   const sequenceState = isHistoryView ? baseSequenceState.map((n, i) => ({
     ...n,
     isCurrent: i === playbackIndex
-  })) : baseSequenceState;
-
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+  })) : baseSequenceState.map((n, i) => ({
+    ...n,
+    isHidden: !effectiveShowNotation && n.status === 'idle',
+    isTransitioning: transitionState.active && i === currentIndex + 1
+  }));
   const [hasCheatedThisExercise, setHasCheatedThisExercise] = useState(cheatMode);
 
   useEffect(() => {
@@ -91,6 +100,9 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
   }, [playbackIndex, baseSequenceState, playNote]);
 
   const generateSequence = useCallback((isRefresh: boolean | React.MouseEvent = false) => {
+    if (transitionIntervalRef.current) clearTimeout(transitionIntervalRef.current);
+    setTransitionState({ active: false, dots: 0 });
+
     const refresh = isRefresh === true;
     const newSequence: NoteData[] = [];
     const randomClef = activeClefs[Math.floor(Math.random() * activeClefs.length)];
@@ -177,8 +189,21 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
 
       const nextIndex = currentIndex + 1;
       if (nextIndex < sequenceState.length) {
-        setCurrentIndex(nextIndex);
-        playNote(sequenceState[nextIndex].key);
+        if (transitionIntervalRef.current) clearTimeout(transitionIntervalRef.current);
+
+        if (volumeRef.current) {
+          setTransitionState({ active: true, dots: 0 });
+          transitionIntervalRef.current = setTimeout(() => {
+            setTransitionState({ active: false, dots: 0 });
+            setCurrentIndex(nextIndex);
+            playNote(sequenceState[nextIndex].key);
+          }, 1200);
+        } else {
+          // Skip animation if muted
+          transitionIntervalRef.current = setTimeout(() => {
+            setCurrentIndex(nextIndex);
+          }, 400);
+        }
       } else {
         setFeedback({ type: 'success', message: 'Reeks voltooid! Nieuwe reeks...' });
         setTimeout(generateSequence, 1500);
@@ -189,8 +214,25 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
         updateGlobalScore(false);
       }
 
-      const actualOctave = currentNote.key.split('/')[1];
-      const guessedKey = `${guess.toLowerCase()}/${actualOctave}`;
+      const actualPitch = currentNote.key.split('/')[0][0].toUpperCase();
+      const actualOctave = parseInt(currentNote.key.split('/')[1], 10);
+
+      const pitchMap: Record<string, number> = { 'C': 0, 'D': 1, 'E': 2, 'F': 3, 'G': 4, 'A': 5, 'B': 6 };
+      const actualIndex = actualOctave * 7 + (pitchMap[actualPitch] || 0);
+      const guessVal = pitchMap[guess.toUpperCase()] || 0;
+
+      let bestOctave = actualOctave;
+      let minDistance = Infinity;
+
+      for (let oct = actualOctave - 1; oct <= actualOctave + 1; oct++) {
+        const dist = Math.abs((oct * 7 + guessVal) - actualIndex);
+        if (dist < minDistance) {
+          minDistance = dist;
+          bestOctave = oct;
+        }
+      }
+
+      const guessedKey = `${guess.toLowerCase()}/${bestOctave}`;
 
       setHistory(prev => {
         const newHistory = [...prev];
@@ -211,8 +253,21 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
 
       const nextIndex = currentIndex + 1;
       if (nextIndex < sequenceState.length) {
-        setCurrentIndex(nextIndex);
-        playNote(sequenceState[nextIndex].key);
+        if (transitionIntervalRef.current) clearTimeout(transitionIntervalRef.current);
+
+        if (volumeRef.current) {
+          setTransitionState({ active: true, dots: 0 });
+          transitionIntervalRef.current = setTimeout(() => {
+            setTransitionState({ active: false, dots: 0 });
+            setCurrentIndex(nextIndex);
+            playNote(sequenceState[nextIndex].key);
+          }, 1200);
+        } else {
+          // Skip animation if muted
+          transitionIntervalRef.current = setTimeout(() => {
+            setCurrentIndex(nextIndex);
+          }, 400);
+        }
       } else {
         setFeedback({ type: 'error', message: 'Reeks voltooid! Nieuwe reeks...' });
         setTimeout(generateSequence, 1500);
@@ -256,6 +311,21 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
             >
               𝄢
             </button>
+            <button
+              className={`btn-icon-toggle ${effectiveShowNotation ? 'active' : ''}`}
+              style={{ marginLeft: '1rem' }}
+              onClick={() => {
+                if (!volume || cheatMode) return;
+                setShowNotation(prev => {
+                  const newVal = !prev;
+                  setTimeout(() => generateSequence(true), 0);
+                  return newVal;
+                });
+              }}
+              title={effectiveShowNotation ? 'Verberg Notatie (Gehoortraining)' : 'Toon Notatie'}
+            >
+              <Music size={22} />
+            </button>
           </div>
         </div>
         <div className="practice-header-right">
@@ -284,10 +354,10 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
       </div>
 
       <div className="renderer-container sequence-view">
-        <ScoreRenderer clef={clefState} notes={sequenceState} width={400} height={180} />
+        <ScoreRenderer key={historyIndex} clef={clefState} notes={sequenceState} width={400} height={180} />
         <div className="replay-container">
           <button
-            className="btn-replay"
+            className={`btn-replay ${transitionState.active ? 'is-transitioning' : ''}`}
             onClick={() => {
               if (isHistoryView) {
                 handleNextPlaybackNote();
@@ -296,9 +366,12 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
               }
             }}
             title="Herbeluister"
-            disabled={(!isHistoryView && currentIndex >= sequenceState.length)}
+            disabled={(!isHistoryView && currentIndex >= sequenceState.length) || transitionState.active}
           >
-            <Play size={20} fill="currentColor" />
+            <Play size={20} fill="currentColor" style={{ zIndex: 1 }} />
+            <svg className="play-progress-circle" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="18" />
+            </svg>
           </button>
         </div>
       </div>
@@ -333,7 +406,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
               key={note}
               className={`btn-note ${showHighlight ? 'cheat-active' : ''} ${isWrongNote ? 'error-active' : ''}`}
               onClick={() => handleGuess(note)}
-              disabled={isHistoryView}
+              disabled={isHistoryView || transitionState.active || feedback.message.includes('Reeks voltooid')}
             >
               {getNoteDisplay(note, namingSystem)}
             </button>
