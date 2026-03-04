@@ -85,7 +85,7 @@ function App() {
                 className={`btn-toggle-small ${namingSystem === 'letters' ? 'active' : ''}`}
                 onClick={() => setNamingSystem('letters')}
               >
-                A,B,C
+                C,D,E
               </button>
             </div>
             <div className="naming-toggle-local">
