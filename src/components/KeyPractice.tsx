@@ -388,6 +388,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                             className={`btn-note ${shouldCheatHighlight ? 'cheat-active' : ''} ${isWrongKey ? 'error-active' : ''}`}
                             onClick={() => isHistoryView ? handleHistoryPlay(key.name) : handleGuess(key.name)}
                             disabled={feedback.type !== null && !isHistoryView}
+                            title={`Raad toonaard ${getKeyDisplayName(key.name, 'major', namingSystem)}`}
                         >
                             <span className="btn-note-label">{getKeyDisplayName(key.name, 'major', namingSystem)}</span>
                             {isHistoryView && <Play size={16} fill="currentColor" className="hover-play-icon" />}
@@ -409,6 +410,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                                     className={`btn-note variant-btn ${shouldCheatHighlightV ? 'cheat-active' : ''} ${isWrongVariant ? 'error-active' : ''}`}
                                     onClick={() => isHistoryView ? handleHistoryPlay(key.name, v) : handleGuess(key.name, v)}
                                     disabled={feedback.type !== null && !isHistoryView}
+                                    title={`Raad toonaard ${getKeyDisplayName(key.name, 'minor', namingSystem)} (${v === 'natural' ? 'natuurlijk' : v === 'harmonic' ? 'harmonisch' : 'melodisch'})`}
                                 >
                                     <span className="btn-note-label">
                                         {getKeyDisplayName(key.name, 'minor', namingSystem)}
@@ -433,6 +435,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                             className={`btn-note ${shouldCheatHighlightFallback ? 'cheat-active' : ''} ${isWrongKeyFallback ? 'error-active' : ''}`}
                             onClick={() => handleGuess(key.name)}
                             disabled={feedback.type !== null || isHistoryView}
+                            title={`Raad toonaard ${getKeyDisplayName(key.name, 'minor', namingSystem)}`}
                         >
                             {getKeyDisplayName(key.name, 'minor', namingSystem)}
                         </button>

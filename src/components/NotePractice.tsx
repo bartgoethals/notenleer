@@ -403,6 +403,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
               className={`btn-note ${showHighlight ? 'cheat-active' : ''} ${isWrongNote ? 'error-active' : ''}`}
               onClick={() => handleGuess(note)}
               disabled={isHistoryView || transitionState.active || feedback.message.includes('Reeks voltooid')}
+              title={`Raad noot ${getNoteDisplay(note, namingSystem)}`}
             >
               {getNoteDisplay(note, namingSystem)}
             </button>

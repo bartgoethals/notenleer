@@ -46,6 +46,7 @@ function App() {
           <button
             className={`nav-item ${activeTab === 'notes' ? 'active' : ''}`}
             onClick={() => setActiveTab('notes')}
+            title="Oefen het lezen van individuele noten"
           >
             <Music size={20} />
             <span>Noten</span>
@@ -53,6 +54,7 @@ function App() {
           <button
             className={`nav-item ${activeTab === 'keys' ? 'active' : ''}`}
             onClick={() => setActiveTab('keys')}
+            title="Oefen het herkennen van toonaarden"
           >
             <Hash size={20} />
             <span>Toonaarden</span>
@@ -60,6 +62,7 @@ function App() {
           <button
             className={`nav-item ${activeTab === 'intervals' ? 'active' : ''}`}
             onClick={() => setActiveTab('intervals')}
+            title="Oefen het horen en herkennen van intervallen"
           >
             <Radio size={20} />
             <span>Intervallen</span>
@@ -67,6 +70,7 @@ function App() {
           <button
             className={`nav-item ${activeTab === 'rhythm' ? 'active' : ''}`}
             onClick={() => setActiveTab('rhythm')}
+            title="Oefen het herkennen en spelen van ritmes"
           >
             <Activity size={20} />
             <span>Ritme</span>
@@ -78,12 +82,14 @@ function App() {
               <button
                 className={`btn-toggle-small ${namingSystem === 'solfege' ? 'active' : ''}`}
                 onClick={() => setNamingSystem('solfege')}
+                title="Gebruik solfège benaming (Do, Re, Mi...)"
               >
                 Do,Re,Mi
               </button>
               <button
                 className={`btn-toggle-small ${namingSystem === 'letters' ? 'active' : ''}`}
                 onClick={() => setNamingSystem('letters')}
+                title="Gebruik alfabetische benaming (C, D, E...)"
               >
                 C,D,E
               </button>
@@ -92,12 +98,14 @@ function App() {
               <button
                 className={`btn-toggle-small ${!usePianoSound ? 'active' : ''}`}
                 onClick={() => setUsePianoSound(false)}
+                title="Gebruik synthetische geluiden"
               >
                 Synth
               </button>
               <button
                 className={`btn-toggle-small ${usePianoSound ? 'active' : ''}`}
                 onClick={() => setUsePianoSound(true)}
+                title="Gebruik akoestische pianogeluiden"
               >
                 Piano
               </button>

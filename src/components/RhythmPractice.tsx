@@ -323,6 +323,7 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, usePianoSound, 
                                 className={`btn-icon-toggle signature-toggle ${activeSignatures.includes(sig) ? 'active' : ''}`}
                                 onClick={() => toggleSignature(sig)}
                                 disabled={isHistoryView || feedback.type !== null}
+                                title={`Schakel ${sig} maatsoort in of uit`}
                             >
                                 {sig}
                             </button>
@@ -433,6 +434,7 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, usePianoSound, 
                             className={choiceClass}
                             style={{ cursor: isHistoryView || feedback.type !== null ? 'default' : 'pointer', display: 'flex', justifyContent: 'center' }}
                             onClick={() => (isHistoryView || feedback.type !== null) ? null : handleGuess(idx)}
+                            title={isHistoryView || feedback.type !== null ? "Ritme keuze" : "Kies dit ritme"}
                         >
                             <RhythmRenderer
                                 sequence={choiceSeq}

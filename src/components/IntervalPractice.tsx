@@ -235,9 +235,10 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, usePianoSou
                             key={interval.name}
                             className={`btn-note ${shouldCheatHighlight ? 'cheat-active' : ''} ${isWrongInterval ? 'error-active' : ''}`}
                             onClick={() => handleGuess(interval.name)}
-                            disabled={feedback.type !== null || isHistoryView}
+                            disabled={feedback.type !== null && !isHistoryView}
+                            title={`Raad interval ${interval.name}`}
                         >
-                            <span className="short-name">{interval.short}</span>
+                            <span className="btn-note-label">{interval.name}</span>
                             <span className="full-name">{interval.fullName}</span>
                         </button>
                     );
