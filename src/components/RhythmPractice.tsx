@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RotateCcw, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import * as Tone from 'tone';
+import { playRhythmAudio } from '../utils/audioUtils';
 import RhythmRenderer from './RhythmRenderer';
 import RhythmCircleRenderer from './RhythmCircleRenderer';
 import BeatVisualizer from './BeatVisualizer';
@@ -25,6 +26,7 @@ interface RhythmHistoryItem {
 
 interface RhythmPracticeProps {
     volume: boolean;
+    usePianoSound: boolean;
     cheatMode: boolean;
     globalScore: { correct: number, total: number };
     updateGlobalScore: (isCorrect: boolean) => void;
@@ -32,7 +34,7 @@ interface RhythmPracticeProps {
 
 const SIGNATURES: TimeSignature[] = ['2/4', '3/4', '4/4', '6/8', '9/8'];
 
-const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, globalScore, updateGlobalScore }) => {
+const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, usePianoSound, cheatMode, globalScore, updateGlobalScore }) => {
     const [activeSignatures, setActiveSignatures] = useState<TimeSignature[]>(['4/4']);
     const [selectedTempo, setSelectedTempo] = useState({ name: 'Moderato', bpm: 108 });
     const [customBpmInput, setCustomBpmInput] = useState('108');
@@ -45,7 +47,6 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [activeSequence, setActiveSequence] = useState<RhythmItem[] | null>(null);
-    const synthRef = useRef<Tone.Synth | null>(null);
     const animationRef = useRef<number | null>(null);
     const isHistoryView = history.length > 0 && historyIndex < history.length - 1;
     const isMobile = useIsMobile(768);
@@ -91,14 +92,6 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
         if (history.length === 0) {
             generateExercise();
         }
-
-        // Initialize Synth
-        if (!synthRef.current) {
-            synthRef.current = new Tone.Synth({
-                oscillator: { type: 'square' },
-                envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.5 }
-            }).toDestination();
-        }
     }, [generateExercise, history.length]);
 
     // Handle Cheat Mode Tracking
@@ -109,15 +102,12 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
     }, [cheatMode]);
 
     const playRhythm = async () => {
-        if (!currentItem || isPlaying || !synthRef.current) return;
+        if (!currentItem || isPlaying) return;
         await Tone.start();
 
         setIsPlaying(true);
         setProgress(0);
         setActiveSequence(null);
-
-        const synth = synthRef.current;
-        synth.volume.value = volume ? -5 : -Infinity;
 
         const { sequence, tempo, signature } = currentItem;
         const secondsPerQuarter = 60 / tempo.bpm;
@@ -141,7 +131,9 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                 const noteDuration = item.ticks * secondsPerQuarter;
                 // Leave a tiny gap (0.05s) between notes for articulation, unless it's very short
                 const articulationGap = Math.min(0.05, noteDuration * 0.1);
-                synth.triggerAttackRelease("C4", noteDuration - articulationGap, noteStart);
+                if (volume) {
+                    playRhythmAudio("C4", noteDuration - articulationGap, usePianoSound, noteStart, 1);
+                }
             }
             accTicks += item.ticks;
         });
@@ -170,15 +162,12 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
 
     const playSpecificRhythm = async (sequence: RhythmItem[], e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!synthRef.current || !currentItem || isPlaying) return;
+        if (!currentItem || isPlaying) return;
 
         await Tone.start();
         setIsPlaying(true);
         setProgress(0);
         setActiveSequence(sequence);
-
-        const synth = synthRef.current;
-        synth.volume.value = volume ? -5 : -Infinity;
 
         const { tempo, signature } = currentItem;
         const secondsPerQuarter = 60 / tempo.bpm;
@@ -201,7 +190,9 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                 const noteStart = startTime + accTicks * secondsPerQuarter;
                 const noteDuration = item.ticks * secondsPerQuarter;
                 const articulationGap = Math.min(0.05, noteDuration * 0.1);
-                synth.triggerAttackRelease("C4", noteDuration - articulationGap, noteStart);
+                if (volume) {
+                    playRhythmAudio("C4", noteDuration - articulationGap, usePianoSound, noteStart, 1);
+                }
             }
             accTicks += item.ticks;
         });
@@ -232,10 +223,6 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
     useEffect(() => {
         return () => {
             if (animationRef.current) cancelAnimationFrame(animationRef.current);
-            if (synthRef.current) {
-                synthRef.current.dispose();
-                synthRef.current = null;
-            }
         };
     }, []);
 

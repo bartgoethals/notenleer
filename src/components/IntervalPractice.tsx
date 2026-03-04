@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import * as Tone from 'tone';
+import { playAudio } from '../utils/audioUtils';
 import ScoreRenderer from './ScoreRenderer';
 import { Play, RotateCcw, Music, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -28,12 +29,13 @@ const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 
 
 interface IntervalPracticeProps {
     volume: boolean;
+    usePianoSound: boolean;
     cheatMode: boolean;
     globalScore: { correct: number, total: number };
     updateGlobalScore: (isCorrect: boolean) => void;
 }
 
-const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, globalScore, updateGlobalScore }) => {
+const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, usePianoSound, cheatMode, globalScore, updateGlobalScore }) => {
     const [history, setHistory] = useState<IntervalHistoryItem[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
 
@@ -96,15 +98,14 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
         if (!volume) return; // Note: removed isPlaying check to allow re-trigger on rapid guessing
 
         await Tone.start();
-        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
 
         const now = Tone.now();
-        synth.triggerAttackRelease(baseNoteState.freq, "4n", now);
-        synth.triggerAttackRelease(targetNoteState.freq, "4n", now + 0.5);
+        playAudio(`${baseNoteState.name}${baseNoteState.octave}`, "4n", usePianoSound, now);
+        playAudio(`${targetNoteState.name}${targetNoteState.octave}`, "4n", usePianoSound, now + 0.5);
 
         setIsPlaying(true);
         setTimeout(() => setIsPlaying(false), 1000);
-    }, [baseNoteState.freq, targetNoteState.freq, volume, isHistoryView]);
+    }, [baseNoteState, targetNoteState, volume, isHistoryView, usePianoSound]);
 
     // Auto-play when interval changes
     useEffect(() => {

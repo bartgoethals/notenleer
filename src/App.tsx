@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Music, Hash, Radio, Activity, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
+import { Music, Hash, Radio, Activity, Volume2, VolumeX, Eye, EyeOff, Piano } from 'lucide-react';
 import './App.css';
 
 import NotePractice from './components/NotePractice';
@@ -14,6 +14,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<ExerciseType>('notes');
   const [namingSystem, setNamingSystem] = useState<NamingSystem>('solfege');
   const [volume, setVolume] = useState(true);
+  const [usePianoSound, setUsePianoSound] = useState(false);
   const [cheatMode, setCheatMode] = useState(false);
 
   const [scores, setScores] = useState({
@@ -72,19 +73,35 @@ function App() {
           </button>
         </nav>
         <div className="header-actions">
-          <div className="naming-toggle-local">
-            <button
-              className={`btn-toggle-small ${namingSystem === 'solfege' ? 'active' : ''}`}
-              onClick={() => setNamingSystem('solfege')}
-            >
-              Do,Re,Mi
-            </button>
-            <button
-              className={`btn-toggle-small ${namingSystem === 'letters' ? 'active' : ''}`}
-              onClick={() => setNamingSystem('letters')}
-            >
-              A,B,C
-            </button>
+          <div className="toggles-wrapper" style={{ display: 'flex', gap: 'inherit', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div className="naming-toggle-local">
+              <button
+                className={`btn-toggle-small ${namingSystem === 'solfege' ? 'active' : ''}`}
+                onClick={() => setNamingSystem('solfege')}
+              >
+                Do,Re,Mi
+              </button>
+              <button
+                className={`btn-toggle-small ${namingSystem === 'letters' ? 'active' : ''}`}
+                onClick={() => setNamingSystem('letters')}
+              >
+                A,B,C
+              </button>
+            </div>
+            <div className="naming-toggle-local">
+              <button
+                className={`btn-toggle-small ${!usePianoSound ? 'active' : ''}`}
+                onClick={() => setUsePianoSound(false)}
+              >
+                Synth
+              </button>
+              <button
+                className={`btn-toggle-small ${usePianoSound ? 'active' : ''}`}
+                onClick={() => setUsePianoSound(true)}
+              >
+                Piano
+              </button>
+            </div>
           </div>
           <div className="icon-actions">
             <button
@@ -107,10 +124,10 @@ function App() {
 
       <main className="content">
         <section className="exercise-view glass-card">
-          {activeTab === 'notes' && <NotePractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} cheatMode={cheatMode} globalScore={scores.notes} updateGlobalScore={(c) => updateScore('notes', c)} />}
-          {activeTab === 'keys' && <KeyPractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} cheatMode={cheatMode} globalScore={scores.keys} updateGlobalScore={(c) => updateScore('keys', c)} />}
-          {activeTab === 'intervals' && <IntervalPractice volume={volume} cheatMode={cheatMode} globalScore={scores.intervals} updateGlobalScore={(c: boolean) => updateScore('intervals', c)} />}
-          {activeTab === 'rhythm' && <RhythmPractice volume={volume} cheatMode={cheatMode} globalScore={scores.rhythm} updateGlobalScore={(c: boolean) => updateScore('rhythm', c)} />}
+          {activeTab === 'notes' && <NotePractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} usePianoSound={usePianoSound} cheatMode={cheatMode} globalScore={scores.notes} updateGlobalScore={(c) => updateScore('notes', c)} />}
+          {activeTab === 'keys' && <KeyPractice namingSystem={namingSystem} setNamingSystem={setNamingSystem} volume={volume} usePianoSound={usePianoSound} cheatMode={cheatMode} globalScore={scores.keys} updateGlobalScore={(c) => updateScore('keys', c)} />}
+          {activeTab === 'intervals' && <IntervalPractice volume={volume} usePianoSound={usePianoSound} cheatMode={cheatMode} globalScore={scores.intervals} updateGlobalScore={(c: boolean) => updateScore('intervals', c)} />}
+          {activeTab === 'rhythm' && <RhythmPractice volume={volume} usePianoSound={usePianoSound} cheatMode={cheatMode} globalScore={scores.rhythm} updateGlobalScore={(c: boolean) => updateScore('rhythm', c)} />}
         </section>
 
         <aside className="score-sidebar glass-card">

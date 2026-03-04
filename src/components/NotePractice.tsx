@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as Tone from 'tone';
+import { playAudio } from '../utils/audioUtils';
 import { Volume2, VolumeX, RotateCcw, Play, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import ScoreRenderer, { NoteData } from './ScoreRenderer';
 import { getNoteDisplay, NamingSystem } from '../utils/musicUtils';
@@ -16,12 +17,13 @@ interface NotePracticeProps {
   namingSystem: NamingSystem;
   setNamingSystem: (system: NamingSystem) => void;
   volume: boolean;
+  usePianoSound: boolean;
   cheatMode: boolean;
   globalScore: { correct: number, total: number };
   updateGlobalScore: (isCorrect: boolean) => void;
 }
 
-const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSystem, volume, cheatMode, globalScore, updateGlobalScore }) => {
+const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSystem, volume, usePianoSound, cheatMode, globalScore, updateGlobalScore }) => {
   const [activeClefs, setActiveClefs] = useState<('treble' | 'bass')[]>(['treble']);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showNotation, setShowNotation] = useState(true);
@@ -69,16 +71,12 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
   const playNote = useCallback(async (noteKey: string) => {
     if (!volumeRef.current) return;
     try {
-      if (Tone.context.state !== 'running') {
-        await Tone.start();
-      }
-      const synth = new Tone.Synth().toDestination();
       const [note, octave] = noteKey.split('/');
-      synth.triggerAttackRelease(`${note}${octave}`, '4n');
+      await playAudio(`${note}${octave}`, '4n', usePianoSound);
     } catch (e) {
       console.error("Audio failed", e);
     }
-  }, [volume]);
+  }, [usePianoSound]);
 
   const stopPlayback = useCallback(() => {
     setPlaybackIndex(-1);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import * as Tone from 'tone';
+import { playAudio } from '../utils/audioUtils';
 import { Volume2, VolumeX, RotateCcw, Eye, EyeOff, Music, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import ScoreRenderer from './ScoreRenderer';
 import {
@@ -26,12 +27,13 @@ interface KeyPracticeProps {
     namingSystem: NamingSystem;
     setNamingSystem: (system: NamingSystem) => void;
     volume: boolean;
+    usePianoSound: boolean;
     cheatMode: boolean;
     globalScore: { correct: number, total: number };
     updateGlobalScore: (isCorrect: boolean) => void;
 }
 
-const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem, volume, cheatMode, globalScore, updateGlobalScore }) => {
+const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem, volume, usePianoSound, cheatMode, globalScore, updateGlobalScore }) => {
     const [activeModes, setActiveModes] = useState<('major' | 'minor')[]>(['major']);
     const [includeVariants, setIncludeVariants] = useState(false);
     const [showNotation, setShowNotation] = useState(true);
@@ -82,7 +84,6 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
             if (Tone.context.state !== 'running') {
                 await Tone.start();
             }
-            const synth = new Tone.PolySynth(Tone.Synth).toDestination();
 
             // Play scale - faster tempo
             const now = Tone.now();
@@ -92,24 +93,21 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
 
             scaleToPlay.forEach((noteKey, i) => {
                 const [note, octave] = noteKey.split('/');
-                synth.triggerAttackRelease(`${note}${octave}`, '8n', now + i * 0.25);
+                playAudio(`${note}${octave}`, '8n', usePianoSound, now + i * 0.25);
             });
 
             // Play triad after scale
             const triadStartTime = now + key.scale.length * 0.25 + 0.5;
-            key.triad.forEach(noteKey => {
-                const [note, octave] = noteKey.split('/');
-                synth.triggerAttack(`${note}${octave}`, triadStartTime);
-            });
-            synth.triggerRelease(key.triad.map(nk => {
+            const triadNotes = key.triad.map(nk => {
                 const [n, o] = nk.split('/');
                 return `${n}${o}`;
-            }), triadStartTime + 1);
+            });
+            playAudio(triadNotes, 1, usePianoSound, triadStartTime);
 
         } catch (e) {
             console.error("Audio failed", e);
         }
-    }, []); // Stable audio playback
+    }, [usePianoSound, minorVariantState]); // Stable audio playback
 
     const generateRandomKey = useCallback((isRefresh: boolean | React.MouseEvent = false) => {
         const refresh = isRefresh === true;
