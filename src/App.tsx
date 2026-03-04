@@ -140,7 +140,7 @@ function App() {
       </main>
 
       <footer className="main-footer">
-        <p>© 2026 Notenleer App - Verbeter je muzikale oren en ogen.</p>
+        <p>© 2026 Bart's Notenleer App - Verbeter je muzikale oren en ogen.</p>
       </footer>
     </div>
   );
