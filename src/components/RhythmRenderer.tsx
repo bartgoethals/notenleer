@@ -10,6 +10,7 @@ interface RhythmRendererProps {
     active?: boolean;
     isCorrect?: boolean;
     isError?: boolean;
+    scale?: number;
 }
 
 const RhythmRenderer: React.FC<RhythmRendererProps> = ({
@@ -19,7 +20,8 @@ const RhythmRenderer: React.FC<RhythmRendererProps> = ({
     height = 100,
     active = false,
     isCorrect = false,
-    isError = false
+    isError = false,
+    scale = 1
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +33,7 @@ const RhythmRenderer: React.FC<RhythmRendererProps> = ({
         const renderer = new Renderer(containerRef.current, Renderer.Backends.SVG);
         renderer.resize(width, height);
         const context = renderer.getContext();
+        context.scale(scale, scale);
 
         let staveColor = '#94a3b8'; // default grey
         let noteColor = '#f8fafc';
@@ -50,7 +53,8 @@ const RhythmRenderer: React.FC<RhythmRendererProps> = ({
         context.setFillStyle(staveColor);
         context.setStrokeStyle(staveColor);
 
-        const stave = new Stave(10, 10, width - 20, { numLines: 5 });
+        const staveWidth = (width / scale) - 20;
+        const stave = new Stave(10, 10 / scale, staveWidth, { numLines: 5 });
         // Hide all lines except the middle one (index 2) so standard b/4 notes and rests sit perfectly
         stave.getConfigForLines().forEach((config, idx) => {
             if (idx !== 2) config.visible = false;
@@ -109,7 +113,7 @@ const RhythmRenderer: React.FC<RhythmRendererProps> = ({
                 b.setStyle({ fillStyle: noteColor, strokeStyle: noteColor });
             });
 
-            new Formatter().joinVoices([voice]).format([voice], width - 60);
+            new Formatter().joinVoices([voice]).format([voice], staveWidth - 40);
 
             voice.draw(context, stave);
             beams.forEach(b => b.setContext(context).draw());

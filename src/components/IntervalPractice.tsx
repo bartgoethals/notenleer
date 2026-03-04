@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as Tone from 'tone';
 import ScoreRenderer from './ScoreRenderer';
 import { Play, RotateCcw, Music, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface IntervalHistoryItem {
     interval: typeof INTERVALS[0];
@@ -45,6 +46,7 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
     const [isPlaying, setIsPlaying] = useState(false);
     const [showNotation, setShowNotation] = useState(true);
+    const isMobile = useIsMobile(768);
 
     const [hasCheatedThisExercise, setHasCheatedThisExercise] = useState(cheatMode);
     useEffect(() => {
@@ -193,14 +195,14 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
                 </div>
             </div>
 
-            <div className="renderer-container sequence-view">
+            <div className="renderer-container interval-view sequence-view">
                 <ScoreRenderer
                     clef="treble"
                     notes={(showNotation || feedback.type !== null || isHistoryView) ? [
                         { key: `${baseNoteState.name}/${baseNoteState.octave}`, status: 'idle' },
                         { key: `${targetNoteState.name}/${targetNoteState.octave}`, status: 'idle' }
                     ] : undefined}
-                    width={280}
+                    width={isMobile ? 220 : 280}
                     height={150}
                 />
                 <div className="replay-container">
@@ -243,8 +245,9 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
 
             <style>{`
         .interval-buttons {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
           gap: 0.5rem;
         }
         .btn-note {
@@ -263,6 +266,7 @@ const IntervalPractice: React.FC<IntervalPracticeProps> = ({ volume, cheatMode, 
         }
         @media (min-width: 600px) {
           .interval-buttons {
+            display: grid;
             grid-template-columns: repeat(6, 1fr);
           }
         }

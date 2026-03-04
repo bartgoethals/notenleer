@@ -46,8 +46,8 @@ const ScoreRenderer: React.FC<ScoreRendererProps> = ({
         context.setFillStyle('#f8fafc');
         context.setStrokeStyle('#f8fafc');
 
-        const staveWidth = width - 40;
-        const stave = new Stave(20, 20, staveWidth);
+        const staveWidth = width - 20;
+        const stave = new Stave(10, 20, staveWidth);
         stave.addClef(clef);
 
         if (keySignature && keySignature !== 'C') {

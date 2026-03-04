@@ -12,6 +12,7 @@ import {
     MinorModeType,
     getMinorScaleVariant
 } from '../utils/musicUtils';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface KeyHistoryItem {
     key: KeyData;
@@ -257,6 +258,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
 
     const displayKeyData = activePlaybackKey?.key || currentKeyState;
     const displayVariant = activePlaybackKey?.variant || minorVariantState;
+    const isMobile = useIsMobile(768);
 
     const scaleNotes = React.useMemo(() => {
         if (!showNotation && feedback.type === null && !isHistoryView) return undefined;
@@ -313,7 +315,7 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                             }}
                             title="Extra wendingen toevoegen"
                         >
-                            +wendingen
+                            {isMobile ? '+' : '+wendingen'}
                         </button>
                         <button
                             className={`btn-icon-toggle ${showNotation ? 'active' : ''}`}
@@ -350,14 +352,14 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
                 </div>
             </div>
 
-            <div className="renderer-container">
+            <div className="renderer-container sequence-view">
                 <ScoreRenderer
                     clef="treble"
                     keySignature={displayKeyData.signature}
                     forceRed={!!activePlaybackKey}
                     notes={scaleNotes}
-                    width={400}
-                    height={180}
+                    width={isMobile ? window.innerWidth - 32 : 400}
+                    height={isMobile ? 120 : 140}
                 />
                 <div className="replay-container">
                     <button
@@ -448,10 +450,11 @@ const KeyPractice: React.FC<KeyPracticeProps> = ({ namingSystem, setNamingSystem
           gap: 0.5rem;
         }
         .key-buttons {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
           gap: 0.5rem;
-          margin-top: 1rem;
+          margin-top: 0.25rem;
         }
         .variant-btn {
           display: flex;

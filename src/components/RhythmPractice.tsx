@@ -12,6 +12,7 @@ import {
     generateWrongRhythms,
     getRandomTempo
 } from '../utils/rhythmUtils';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface RhythmHistoryItem {
     signature: TimeSignature;
@@ -47,6 +48,7 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
     const synthRef = useRef<Tone.Synth | null>(null);
     const animationRef = useRef<number | null>(null);
     const isHistoryView = history.length > 0 && historyIndex < history.length - 1;
+    const isMobile = useIsMobile(768);
 
     // Derived current item
     const currentItem = history[historyIndex];
@@ -319,12 +321,14 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
     if (!currentItem) return <div className="practice-area">Laden...</div>;
 
     const showSolution = isHistoryView || feedback.type !== null || cheatMode;
+    const circleSize = isMobile ? 120 : 180;
+    const rendererWidth = isMobile ? window.innerWidth / 2 - 30 : 260; // Approximate column width
 
     return (
         <div className="practice-area">
 
-            <div className="practice-header">
-                <div className="controls-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className="practice-header" style={{ padding: isMobile ? '0.5rem' : '1rem', rowGap: '0.25rem', gap: '0.5rem' }}>
+                <div className="controls-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <div className="clef-toggle toggle-group">
                         {SIGNATURES.map(sig => (
                             <button
@@ -339,23 +343,25 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                     </div>
 
                     <div className="rhythm-tempo-control" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.35rem 0.75rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <select
-                            value={currentItem.tempo.name}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === 'Aangepast') {
-                                    handleTempoChange(parseInt(customBpmInput), 'Aangepast');
-                                } else {
-                                    const t = TEMPO_NAMES.find(n => n.name === val);
-                                    if (t) handleTempoChange(t.bpm, t.name);
-                                }
-                            }}
-                            disabled={isHistoryView || isPlaying}
-                            style={{ padding: '0.25rem', borderRadius: '4px', background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.9rem' }}
-                        >
-                            {TEMPO_NAMES.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-                            <option value="Aangepast">Aangepast</option>
-                        </select>
+                        {!isMobile && (
+                            <select
+                                value={currentItem.tempo.name}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === 'Aangepast') {
+                                        handleTempoChange(parseInt(customBpmInput), 'Aangepast');
+                                    } else {
+                                        const t = TEMPO_NAMES.find(n => n.name === val);
+                                        if (t) handleTempoChange(t.bpm, t.name);
+                                    }
+                                }}
+                                disabled={isHistoryView || isPlaying}
+                                style={{ padding: '0.25rem', borderRadius: '4px', background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.9rem' }}
+                            >
+                                {TEMPO_NAMES.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                                <option value="Aangepast">Aangepast</option>
+                            </select>
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', marginLeft: '0.25rem' }}>
                             <span style={{ fontSize: '1rem', marginRight: '0.25rem' }}>♩ =</span>
                             <input
@@ -391,8 +397,8 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                 {feedback.message}
             </div>
 
-            <div className="rhythm-display-area" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: '2rem', margin: '-0.5rem 0 1.5rem' }}>
-                <div className="rhythm-circle-wrapper" style={{ width: '180px', height: '180px', position: 'relative' }}>
+            <div className="rhythm-display-area" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: isMobile ? '1rem' : '2rem', margin: isMobile ? '0 0 0.5rem' : '-0.5rem 0 1.5rem' }}>
+                <div className="rhythm-circle-wrapper" style={{ width: `${circleSize}px`, height: `${circleSize}px`, position: 'relative' }}>
                     <RhythmCircleRenderer
                         sequence={activeSequence || currentItem.sequence}
                         signature={currentItem.signature}
@@ -404,24 +410,24 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                         <button
                             className="btn-play-overlay"
                             onClick={playRhythm}
-                            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#8b5cf6', border: 'none', borderRadius: '50%', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', opacity: 0.9 }}
+                            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#8b5cf6', border: 'none', borderRadius: '50%', width: isMobile ? '40px' : '60px', height: isMobile ? '40px' : '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', opacity: 0.9 }}
                             title="Speel Ritme"
                         >
-                            <Play size={30} style={{ marginLeft: '4px' }} fill="currentColor" />
+                            <Play size={isMobile ? 20 : 30} style={{ marginLeft: isMobile ? '2px' : '4px' }} fill="currentColor" />
                         </button>
                     )}
                 </div>
 
-                <div className="beat-visualizer-wrapper" style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="beat-visualizer-wrapper" style={{ width: `${circleSize}px`, height: `${circleSize}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <BeatVisualizer
                         signature={currentItem.signature}
                         progress={progress}
-                        size={180}
+                        size={circleSize}
                     />
                 </div>
             </div>
 
-            <div className={`rhythm-options-grid ${isHistoryView ? 'history-mode' : ''}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', width: '100%' }}>
+            <div className={`rhythm-options-grid ${isHistoryView ? 'history-mode' : ''}`} style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', width: '100%' }}>
                 {currentItem.choices.map((choiceSeq, idx) => {
                     const isCorrectChoice = idx === currentItem.correctChoiceIndex;
                     const isUserChoice = idx === currentItem.userChoiceIndex;
@@ -438,14 +444,15 @@ const RhythmPractice: React.FC<RhythmPracticeProps> = ({ volume, cheatMode, glob
                         <div
                             key={idx}
                             className={choiceClass}
-                            style={{ cursor: isHistoryView || feedback.type !== null ? 'default' : 'pointer' }}
+                            style={{ cursor: isHistoryView || feedback.type !== null ? 'default' : 'pointer', display: 'flex', justifyContent: 'center' }}
                             onClick={() => (isHistoryView || feedback.type !== null) ? null : handleGuess(idx)}
                         >
                             <RhythmRenderer
                                 sequence={choiceSeq}
                                 signature={currentItem.signature}
-                                width={260}
-                                height={90}
+                                width={isMobile ? rendererWidth * 2 : rendererWidth}
+                                height={isMobile ? 70 : 90}
+                                scale={isMobile ? 0.70 : 1}
                             />
 
                             {/* Play button for the specific choice */}

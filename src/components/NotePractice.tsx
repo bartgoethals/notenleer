@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 import { Volume2, VolumeX, RotateCcw, Play, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import ScoreRenderer, { NoteData } from './ScoreRenderer';
 import { getNoteDisplay, NamingSystem } from '../utils/musicUtils';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface NoteHistoryItem {
   clef: 'treble' | 'bass';
@@ -51,6 +52,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     isTransitioning: transitionState.active && i === currentIndex + 1
   }));
   const [hasCheatedThisExercise, setHasCheatedThisExercise] = useState(cheatMode);
+  const isMobile = useIsMobile(768);
 
   useEffect(() => {
     if (cheatMode && !isHistoryView) {
@@ -74,15 +76,9 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
       const [note, octave] = noteKey.split('/');
       synth.triggerAttackRelease(`${note}${octave}`, '4n');
     } catch (e) {
-      // This part of the snippet seems to refer to a different context (playSynthRef, freq, now)
-      // but I'm inserting it faithfully as requested.
-      // Original: console.error("Audio failed", e);
-      // Assuming playSynthRef, freq, now are defined elsewhere or will be.
-      // For now, I'll keep the original console.error to avoid undefined variables.
-      // If the user intended to replace with a different synth logic, that would require more context.
       console.error("Audio failed", e);
     }
-  }, [volume]); // Changed dependency from [] to [volume] as per snippet
+  }, [volume]);
 
   const stopPlayback = useCallback(() => {
     setPlaybackIndex(-1);
@@ -108,7 +104,9 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     const randomClef = activeClefs[Math.floor(Math.random() * activeClefs.length)];
 
     const usedNotePitches = new Set<string>();
-    while (newSequence.length < 8) {
+    const sequenceLength = 8; // Reverted back to 8 as requested
+
+    while (newSequence.length < sequenceLength) {
       const noteName = NOTES_LIST[Math.floor(Math.random() * NOTES_LIST.length)];
       const octave = randomClef === 'treble' ? 4 + Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2);
       const noteKey = `${noteName.toLowerCase()}/${octave}`;
@@ -139,14 +137,14 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
     // Play the first note
     setTimeout(() => playNote(newSequence[0].key), 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeClefs, playNote, historyIndex, cheatMode, history.length, currentIndex]);
+  }, [activeClefs, playNote, historyIndex, cheatMode, history.length, currentIndex, isMobile]);
 
   useEffect(() => {
     if (history.length === 0) {
       generateSequence();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isMobile]);
 
   const toggleClef = (c: 'treble' | 'bass') => {
     setActiveClefs(prev => {
@@ -354,7 +352,7 @@ const NotePractice: React.FC<NotePracticeProps> = ({ namingSystem, setNamingSyst
       </div>
 
       <div className="renderer-container sequence-view">
-        <ScoreRenderer key={historyIndex} clef={clefState} notes={sequenceState} width={400} height={180} />
+        <ScoreRenderer key={historyIndex} clef={clefState} notes={sequenceState} width={isMobile ? window.innerWidth - 32 : 400} height={isMobile ? 120 : 140} />
         <div className="replay-container">
           <button
             className={`btn-replay ${transitionState.active ? 'is-transitioning' : ''}`}
